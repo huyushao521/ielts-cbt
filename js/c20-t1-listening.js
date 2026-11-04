@@ -1,13 +1,7 @@
 /* Cambridge IELTS 20 - Test 1 (Academic) 数据
  * 由扫描版 PDF 经 OCR 整理，个别拼写/标点可能需校对。 */
-window.IELTS_DATA = {
-  meta: {
-    book: "Cambridge IELTS 20",
-    test: "Test 1",
-    module: "Academic",
-    sections: ["Listening", "Reading", "Writing", "Speaking"],
-  },
-
+window.IELTS_DATA_MAP = window.IELTS_DATA_MAP || {};
+window.IELTS_DATA_MAP["c20-t1"] = {
   /* ---------------- LISTENING ---------------- */
   listening: {
     minutes: 30,

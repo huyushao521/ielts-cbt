@@ -1,5 +1,5 @@
 /* Test 1 - Writing & Speaking */
-window.IELTS_DATA.writing = {
+window.IELTS_DATA_MAP["c20-t1"].writing = {
   minutes: 60,
   tasks: [
     {
@@ -34,7 +34,7 @@ window.IELTS_DATA.writing = {
   ],
 };
 
-window.IELTS_DATA.speaking = {
+window.IELTS_DATA_MAP["c20-t1"].speaking = {
   minutes: 14,
   parts: [
     {

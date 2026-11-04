@@ -1,7 +1,6 @@
-/* 核心：状态、工具函数、视图切换、首页、计时器 */
+/* 核心：状态、工具函数、视图切换、三级首页（书 → 题号 → 部分）、计时器 */
 window.App = (function () {
-  const D = window.IELTS_DATA;
-  const state = { section: null, answers: {}, timerId: null, timeLeft: 0, submitted: false };
+  const state = { section: null, bookId: null, testId: null, answers: {}, timerId: null, timeLeft: 0, submitted: false };
 
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -29,19 +28,103 @@ window.App = (function () {
     }, 1000);
   }
 
+  function findBook(id) { return window.IELTS_BOOKS.find((b) => b.id === id); }
+
+  /* 加载某本书某套题的数据，写入 App.D 作为“当前题集” */
+  function loadTest(bookId, testId) {
+    const book = findBook(bookId);
+    const td = book.tests.find((t) => t.id === testId);
+    const data = window.IELTS_DATA_MAP[testId];
+    if (!data) { alert("该套题数据尚未录入。"); return false; }
+    data.meta = { book: book.name, short: book.short, test: td.label, module: book.module };
+    App.D = data;
+    state.bookId = bookId; state.testId = testId;
+    return true;
+  }
+
+  /* ---------- 首页：三级导航 ---------- */
   function renderHome() {
     stopTimer();
     state.section = null; state.answers = {}; state.submitted = false;
+    state.bookId = null; state.testId = null;
+    renderHomeView();
+  }
+
+  function selectBook(bookId) {
+    stopTimer();
+    state.bookId = bookId; state.testId = null; state.section = null;
+    renderHomeView();
+  }
+
+  function selectTest(bookId, testId) {
+    stopTimer();
+    if (!loadTest(bookId, testId)) return;
+    state.section = null; state.answers = {}; state.submitted = false;
+    renderHomeView();
+  }
+
+  function renderHomeView() {
     $("#app").innerHTML = "";
+    if (!state.bookId) renderBooks();
+    else if (!state.testId) renderTests();
+    else renderSections();
+  }
+
+  function renderBooks() {
     const view = el(
       '<div class="view active" id="home-view"><div class="home-wrap">' +
-      '<div class="home-head"><h1>' + D.meta.book + '</h1>' +
-      '<p class="sub">' + D.meta.test + " · " + D.meta.module + " · 机考练习系统 (Computer-Based Practice)</p></div>" +
-      '<div class="card-grid"></div>' +
-      '<div class="home-foot">听力音频已内置（T1S1–T1S4）；听力 / 阅读可自动判分并估算雅思分数。</div>' +
+      '<div class="home-head"><h1>剑桥雅思机考练习系统</h1>' +
+      '<p class="sub">IELTS Academic Computer-Based Practice · 请选择真题集</p></div>' +
+      '<div class="book-grid"></div>' +
+      '<div class="home-foot">听力 / 阅读可自动判分并估算雅思分数；听力音频已内置。</div>' +
       "</div></div>"
     );
     $("#app").appendChild(view);
+    const grid = view.querySelector(".book-grid");
+    window.IELTS_BOOKS.forEach((b) => {
+      const card = el(
+        '<div class="book-card' + (b.ready ? "" : " pending") + '">' +
+        '<div class="book-short">' + b.short + "</div><h3>" + b.name + "</h3>" +
+        "<p>" + (b.ready ? b.tests.length + " 套题" : "待录入") + "</p>" +
+        '<div class="card-go">' + (b.ready ? "进入 →" : "敬请期待") + "</div></div>"
+      );
+      if (b.ready) card.addEventListener("click", () => App.selectBook(b.id));
+      grid.appendChild(card);
+    });
+  }
+
+  function renderTests() {
+    const book = findBook(state.bookId);
+    const view = el(
+      '<div class="view active" id="home-view"><div class="home-wrap">' +
+      '<button class="ghost-btn back-home">‹ 返回书目</button>' +
+      '<div class="home-head"><h1>' + book.short + " · " + book.name + "</h1>" +
+      '<p class="sub">' + book.module + " · 请选择题号</p></div>" +
+      '<div class="test-grid"></div></div></div>'
+    );
+    $("#app").appendChild(view);
+    view.querySelector(".back-home").addEventListener("click", App.renderHome);
+    const grid = view.querySelector(".test-grid");
+    book.tests.forEach((t) => {
+      const card = el('<div class="test-card"><div class="test-num">' + t.label + '</div><div class="card-go">开始练习 →</div></div>');
+      card.addEventListener("click", () => App.selectTest(book.id, t.id));
+      grid.appendChild(card);
+    });
+  }
+
+  function renderSections() {
+    const D = App.D, book = findBook(state.bookId);
+    const view = el(
+      '<div class="view active" id="home-view"><div class="home-wrap">' +
+      '<button class="ghost-btn back-home">‹ 返回' + book.short + "题号</button>" +
+      '<div class="home-head"><h1>' + book.short + " · " + D.meta.test + "</h1>" +
+      '<p class="sub">' + D.meta.book + " · " + D.meta.module + " · 机考练习系统</p></div>" +
+      '<div class="card-grid"></div>' +
+      '<div class="home-foot">听力音频已内置；听力 / 阅读可自动判分并估算雅思分数。</div>' +
+      "</div></div>"
+    );
+    $("#app").appendChild(view);
+    view.querySelector(".back-home").addEventListener("click", () => App.selectBook(book.id));
     const grid = view.querySelector(".card-grid");
     const defs = [
       { k: "listening", icon: "🎧", name: "Listening 听力", desc: "4 个部分 · 30 分钟 · 40 题" },
@@ -65,5 +148,5 @@ window.App = (function () {
     else if (kind === "speaking") App.buildSpeaking();
   }
 
-  return { D, state, $, $$, el, norm, fmt, show, stopTimer, startTimer, renderHome, startSection };
+  return { D: null, state, $, $$, el, norm, fmt, show, stopTimer, startTimer, renderHome, selectBook, selectTest, loadTest, startSection };
 })();

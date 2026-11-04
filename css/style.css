@@ -43,6 +43,32 @@ body {
 .card p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
 .card-go { color: var(--brand); font-weight: 600; font-size: 14px; }
 .home-foot { text-align: center; color: var(--muted); font-size: 13px; margin-top: 36px; }
+.back-home { margin-bottom: 8px; }
+
+/* 书目选择 */
+.book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; }
+.book-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 24px 20px; cursor: pointer; text-align: center;
+  transition: transform .15s, box-shadow .15s, border-color .15s; box-shadow: 0 1px 3px rgba(16,42,83,.06);
+}
+.book-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(16,42,83,.14); border-color: var(--brand); }
+.book-card.pending { cursor: not-allowed; opacity: .55; }
+.book-card.pending:hover { transform: none; box-shadow: 0 1px 3px rgba(16,42,83,.06); border-color: var(--line); }
+.book-short { font-size: 30px; font-weight: 800; color: var(--brand); }
+.book-card h3 { margin: 8px 0 4px; font-size: 16px; color: var(--brand-dark); }
+.book-card p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+.book-card .soon { color: var(--muted); }
+
+/* 题号选择 */
+.test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px; }
+.test-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 30px 20px; cursor: pointer; text-align: center;
+  transition: transform .15s, box-shadow .15s, border-color .15s; box-shadow: 0 1px 3px rgba(16,42,83,.06);
+}
+.test-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(16,42,83,.14); border-color: var(--brand); }
+.test-num { font-size: 26px; font-weight: 800; color: var(--brand-dark); }
 
 /* ---------------- 答题框架 ---------------- */
 .exam-bar {

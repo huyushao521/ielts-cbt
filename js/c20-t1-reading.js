@@ -1,5 +1,5 @@
 /* Test 1 - Reading */
-window.IELTS_DATA.reading = {
+window.IELTS_DATA_MAP["c20-t1"].reading = {
   minutes: 60,
   answers: {
     "1": "FALSE", "2": "FALSE", "3": "FALSE", "4": "NOT GIVEN", "5": "TRUE", "6": "TRUE",
