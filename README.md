@@ -1,13 +1,24 @@
-# 剑桥雅思 20 · Test 1 · 机考练习系统
+# 剑桥雅思机考练习系统（剑 20 / 剑 21）
 
 一个纯前端（HTML/CSS/JS，无依赖）的雅思机考模拟网页，模拟官方 Computer-Based IELTS 的界面与答题体验。
 
+## 已收录内容
+
+| 书目 | 收录范围 | 状态 |
+| --- | --- | --- |
+| Cambridge IELTS 21（Academic） | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
+| Cambridge IELTS 20（Academic） | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
+| Cambridge IELTS 19 及更早 | — | ⏳ 预留位置，未收录 |
+
 ## 功能
 
-- **Listening 听力**：内置音频播放器（T1S1–T1S4，可暂停/重播），4 个部分共 40 题，30 分钟计时，自动判分。
+- **Listening 听力**：内置音频播放器（可暂停/重播），4 个部分共 40 题，30 分钟计时，自动判分。
 - **Reading 阅读**：3 篇文章分栏阅读（左侧原文、右侧题目），40 题，60 分钟计时，自动判分。
 - **Writing 写作**：Task 1 + Task 2，实时字数统计，60 分钟计时（写作无法自动判分）。
-- **Speaking 口语**：Part 1–3 完整题目展示，供自练自评。
+- **Speaking 口语**：Part 1–3 完整题目展示，支持自练自评与 AI 评分。
+  - **AI 评分**：录音 → 讯飞语音听写（IAT）转写 → 通义千问按雅思标准打分。
+  - **口音朗读**：英式 / 美式 / 印式三种口音（浏览器原生 TTS），可朗读任意输入文本。
+  - **合成评分**：输入英文文本，经讯飞 TTS 合成音频后直接送入评分链路（无需开口录音）。
 - 听力 / 阅读提交后给出：得分、正确率、**估算雅思分数**、逐题答题详情对照。
 - 题号导航面板（已答 / 未答实时标记）、倒计时、临场警告。
 
@@ -21,38 +32,65 @@ python -m http.server 8000
 # 打开 http://localhost:8000
 ```
 
+> 口语 AI 评分依赖浏览器麦克风与网络（需 HTTPS 或 localhost 环境）。
+
 ## 部署到 GitHub Pages
 
-1. 在 GitHub 新建仓库（若只想自己用，建议设为 **Private**）。
-2. 把本目录 `ielts-cbt/` 里的全部文件推到仓库（`index.html` 放在仓库根目录）。
-3. 仓库 **Settings → Pages → Source** 选择 `Deploy from a branch`，分支选 `main`，目录选 `/ (root)`，保存。
-4. 稍等片刻，访问 `https://<你的用户名>.github.io/<仓库名>/` 即可。
+本仓库已托管于 [huyushao521/ielts-cbt](https://github.com/huyushao521/ielts-cbt)，`index.html` 位于仓库根目录。在仓库 **Settings → Pages → Source** 选择 `Deploy from a branch`、分支 `main`、目录 `/ (root)` 后，访问：
 
-> 命令行方式（假设仓库已创建并绑定远程）：
-> ```bash
-> git add .
-> git commit -m "ielts cbt test 1"
-> git push origin main
-> ```
+```
+https://huyushao521.github.io/ielts-cbt/
+```
+
+后续更新内容只需推送到 `main` 分支即可自动触发部署：
+
+```bash
+git add .
+git commit -m "update"
+git push origin main
+```
+
+## 目录结构
+
+```
+ielts-cbt/
+├── index.html            # 入口（按序引入 books.js → 各数据文件 → 核心脚本）
+├── css/style.css
+├── js/
+│   ├── books.js          # 书目注册表（新增书目在此登记）
+│   ├── c20-t{n}-*.js     # 剑 20 各 Test 的听力/阅读/写作数据
+│   ├── c21-t{n}-*.js     # 剑 21 各 Test 的听力/阅读/写作数据
+│   ├── speaking-ai.js    # 口语 AI：录音、讯飞 IAT 转写、讯飞 TTS、通义千问评分
+│   ├── app-core.js / app-render.js / app-sections.js
+└── audio/
+    ├── T1S1.mp3 … T4S4.mp3   # 剑 20 听力音频
+    └── c21/…                 # 剑 21 听力音频
+```
 
 ## 音频文件约定
 
-听力音频需放在 `audio/` 目录，命名规则为 `T{测试号}S{部分号}.mp3`：
+听力音频命名规则为 `T{测试号}S{部分号}.mp3`，放在 `audio/` 根目录（剑 20）或对应子目录（剑 21 放在 `audio/c21/`）：
 
 ```
 audio/T1S1.mp3   # Test 1, Part 1
-audio/T1S2.mp3   # Test 1, Part 2
-audio/T1S3.mp3
-audio/T1S4.mp3
+audio/T1S4.mp3   # Test 1, Part 4
+audio/c21/T1S1.mp3
 ```
 
-后续扩展 Test 2–4 时，只需补充对应音频，并在 `js/data*.js` 中新增数据即可。
+## 口语 AI 密钥配置
+
+口语评分 / 合成用到的密钥全部在 `js/speaking-ai.js` 顶部的 `_K` 对象中配置：
+
+- 讯飞开放平台：`xf_appid`、`xf_apikey`、`xf_secret`（用于语音听写 IAT 与 TTS 合成，两个服务需同一账号均开通）。
+- 阿里云百炼：`ds_key`（通义千问 DashScope API Key，用于评分）。
+
+> ⚠️ 纯前端直连意味着密钥会暴露在前端代码中，公开部署存在被盗用风险。建议申请**专用 Key**，并在讯飞 / 百炼控制台配置 **IP 白名单**或用量限制。
 
 ## 内容与版权说明
 
-- 题目内容来自《Cambridge IELTS 20（Academic）》，由扫描版 PDF 经 OCR 整理，**个别单词/标点可能存在识别误差**，正式刷题前建议对照纸质书校对。
-- 阅读 Passage 3 第 31–35 题的选项 C 在扫描件中缺失，已用中性干扰项补全（不影响判分，因为 C 不是正确选项）。
-- 本内容受版权保护，**仅供个人学习练习使用**；请勿公开发布完整题目，公开发布可能面临侵权/下架风险。
+- 题目内容来自《Cambridge IELTS 20 / 21（Academic）》，由扫描版 PDF 经 OCR 整理，**个别单词 / 标点可能存在识别误差**，正式刷题前建议对照纸质书校对。
+- 阅读部分个别缺失选项已用中性干扰项补全（不影响判分）。
+- 本内容受版权保护，**仅供个人学习练习使用**；请勿公开发布完整题目，公开发布可能面临侵权 / 下架风险。
 
 ## 估算分数换算
 
