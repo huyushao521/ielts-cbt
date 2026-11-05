@@ -2,7 +2,12 @@
  * 并新建对应数据文件 js/data/<id>-t1.js ... t4.js，
  * 每个文件往 window.IELTS_DATA_MAP 里注册即可。 */
 window.IELTS_BOOKS = [
-  { id: "c21", name: "Cambridge IELTS 21", short: "剑 21", module: "Academic", ready: false, tests: [] },
+  { id: "c21", name: "Cambridge IELTS 21", short: "剑 21", module: "Academic", ready: true, tests: [
+    { id: "c21-t1", label: "Test 1" },
+    { id: "c21-t2", label: "Test 2" },
+    { id: "c21-t3", label: "Test 3" },
+    { id: "c21-t4", label: "Test 4" },
+  ] },
   { id: "c20", name: "Cambridge IELTS 20", short: "剑 20", module: "Academic", ready: true, tests: [
     { id: "c20-t1", label: "Test 1" },
     { id: "c20-t2", label: "Test 2" },
