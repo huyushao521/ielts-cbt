@@ -89,16 +89,171 @@
   };
 
   /* ---------- Speaking ---------- */
+  function htmlToText(html) {
+    const t = document.createElement("template");
+    t.innerHTML = html;
+    return (t.content.textContent || "").trim().replace(/\s+/g, " ");
+  }
+
+  function renderSpeakingScore(container, transcript, sc) {
+    const dims = [
+      ["fluency", "流利度"],
+      ["coherence", "连贯性"],
+      ["lexical", "词汇资源"],
+      ["grammar", "语法广度与准确度"],
+      ["pronunciation", "发音"],
+    ];
+    const dimHtml = dims.map((d) => '<div class="score-dim"><span>' + d[1] + '</span><b>' + (sc[d[0]] != null ? sc[d[0]] : "—") + "</b></div>").join("");
+    const errors = (sc.errors_cn || []).map((e) => "<li>" + e + "</li>").join("");
+    container.innerHTML =
+      '<div class="rec-transcript"><b>识别文本：</b>' + (transcript || "（未识别到内容）") + "</div>" +
+      '<div class="score-panel">' +
+      '<div class="score-head">估算总分 <b>' + (sc.band || sc.overall || "—") + "</b></div>" +
+      '<div class="score-dims">' + dimHtml + "</div>" +
+      '<div class="score-feedback">' + (sc.feedback_cn || "") + "</div>" +
+      (errors ? '<ul class="score-errors">' + errors + "</ul>" : "") +
+      "</div>";
+  }
+
+  function pickVoice(lang) {
+    if (!("speechSynthesis" in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    return voices.find((v) => (v.lang || "").toLowerCase().replace("_", "-").startsWith(lang)) || null;
+  }
+
+  function speak(text, lang) {
+    if (!("speechSynthesis" in window)) return false;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang;
+    u.rate = 0.95;
+    const v = pickVoice(lang);
+    if (v) u.voice = v;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+    return true;
+  }
+
   A.buildSpeaking = function () {
     const cfg = { kind: "speaking", name: "Speaking 口语", minutes: A.D.speaking.minutes };
     A.buildFrame(cfg);
     const body = A.$("#exam-body");
     body.classList.add("speaking-body");
+    const aiReady = window.SpeakingAI && SpeakingAI.isSupported();
+
+    // 预热语音列表（部分移动端首次 getVoices 为空）
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
     A.D.speaking.parts.forEach((p) => {
-      const sec = el('<section class="speak-part"><h2>' + p.title + "</h2><div class='speak-html'>" + p.html + "</div></section>");
+      const sec = el('<section class="speak-part"><h2>' + p.title + "</h2><div class='speak-html'>" + p.html + "</div>" +
+        '<div class="speak-ai">' +
+          '<div class="voice-panel">' +
+            '<div class="voice-row"><span class="voice-label">🎧 发音口音</span>' +
+              '<div class="voice-pick">' +
+                '<button class="voice-opt on" data-accent="en-GB" type="button">🇬🇧 英式</button>' +
+                '<button class="voice-opt" data-accent="en-US" type="button">🇺🇸 美式</button>' +
+                '<button class="voice-opt" data-accent="en-IN" type="button">🇮🇳 印式</button>' +
+              '</div></div>' +
+            '<textarea class="tts-input" rows="3" placeholder="输入英文文本（模拟回答或范文），可朗读，或合成后送 AI 评分"></textarea>' +
+            '<div class="voice-actions">' +
+              '<button class="ghost-btn speak-btn" type="button">🔊 朗读</button>' +
+              '<button class="ghost-btn synth-btn" type="button">🎧 合成并评分</button>' +
+            '</div>' +
+            '<span class="synth-status"></span>' +
+          '</div>' +
+          '<div class="rec-row"><button class="rec-btn" type="button">🎙 开始录音</button><span class="rec-status"></span></div>' +
+          '<div class="rec-result"></div>' +
+        '</div></section>');
       body.appendChild(sec);
+
+      const questionText = htmlToText(p.html);
+      const input = sec.querySelector(".tts-input");
+      input.value = questionText;
+
+      let accent = "en-GB";
+      sec.querySelectorAll(".voice-opt").forEach((b) => {
+        b.addEventListener("click", () => {
+          accent = b.getAttribute("data-accent");
+          sec.querySelectorAll(".voice-opt").forEach((x) => x.classList.toggle("on", x === b));
+        });
+      });
+
+      const synthStatus = sec.querySelector(".synth-status");
+
+      sec.querySelector(".speak-btn").addEventListener("click", () => {
+        const t = input.value.trim();
+        if (!t) { synthStatus.textContent = "请先输入英文文本"; return; }
+        if (!speak(t, accent)) { synthStatus.textContent = "当前浏览器不支持朗读"; return; }
+        synthStatus.textContent = "正在朗读（" + accent + "）…";
+      });
+
+      const btn = sec.querySelector(".rec-btn");
+      const status = sec.querySelector(".rec-status");
+      const result = sec.querySelector(".rec-result");
+
+      sec.querySelector(".synth-btn").addEventListener("click", async () => {
+        const t = input.value.trim();
+        if (!t) { synthStatus.textContent = "请先输入英文文本"; return; }
+        if (!window.SpeakingAI) { synthStatus.textContent = "AI 模块未加载"; return; }
+        const sb = sec.querySelector(".synth-btn");
+        sb.disabled = true;
+        synthStatus.textContent = "正在合成语音…";
+        try {
+          const pcm = await SpeakingAI.tts(t);
+          synthStatus.textContent = "正在语音转写…";
+          const transcript = await SpeakingAI.transcribe(pcm);
+          synthStatus.textContent = "正在 AI 评分…";
+          const sc = await SpeakingAI.score(transcript, questionText, p.title);
+          renderSpeakingScore(result, transcript, sc);
+          synthStatus.textContent = "";
+        } catch (e) {
+          synthStatus.textContent = "出错：" + (e && e.message ? e.message : e);
+        } finally {
+          sb.disabled = false;
+        }
+      });
+
+      if (!aiReady) {
+        btn.disabled = true;
+        btn.textContent = "⚠ 当前浏览器不支持录音";
+        return;
+      }
+
+      btn.addEventListener("click", async () => {
+        if (SpeakingAI.isRecording()) {
+          btn.disabled = true;
+          status.textContent = "正在转写…";
+          try {
+            const blob = await SpeakingAI.stop();
+            const pcm = await SpeakingAI.blobToPcm16k(blob);
+            const transcript = await SpeakingAI.transcribe(pcm);
+            status.textContent = "正在 AI 评分…";
+            const sc = await SpeakingAI.score(transcript, questionText, p.title);
+            renderSpeakingScore(result, transcript, sc);
+            status.textContent = "";
+          } catch (e) {
+            status.textContent = "出错：" + (e && e.message ? e.message : e);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "🎙 重新录音";
+            btn.classList.remove("recording");
+          }
+        } else {
+          try {
+            await SpeakingAI.start();
+            btn.textContent = "⏹ 停止录音";
+            btn.classList.add("recording");
+            status.textContent = "录音中…";
+          } catch (e) {
+            status.textContent = "无法开始录音：" + (e && e.message ? e.message : e);
+          }
+        }
+      });
     });
-    A.$("#nav-palette").innerHTML = '<span class="nav-label">口语部分（练习模式，自评）</span>';
+
+    A.$("#nav-palette").innerHTML = '<span class="nav-label">口语部分（AI 评分 · 口音朗读 / 合成）</span>';
     A.startTimer(cfg.minutes);
   };
 
