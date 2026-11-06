@@ -20,7 +20,12 @@ window.IELTS_BOOKS = [
     { id: "c19-t3", label: "Test 3" },
     { id: "c19-t4", label: "Test 4" },
   ] },
-  { id: "c18", name: "Cambridge IELTS 18", short: "剑 18", module: "Academic", ready: false, tests: [] },
+  { id: "c18", name: "Cambridge IELTS 18", short: "剑 18", module: "Academic", ready: true, tests: [
+    { id: "c18-t1", label: "Test 1" },
+    { id: "c18-t2", label: "Test 2" },
+    { id: "c18-t3", label: "Test 3" },
+    { id: "c18-t4", label: "Test 4" },
+  ] },
   { id: "c17", name: "Cambridge IELTS 17", short: "剑 17", module: "Academic", ready: false, tests: [] },
   { id: "c16", name: "Cambridge IELTS 16", short: "剑 16", module: "Academic", ready: false, tests: [] },
   { id: "c15", name: "Cambridge IELTS 15", short: "剑 15", module: "Academic", ready: false, tests: [] },

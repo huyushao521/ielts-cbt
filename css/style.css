@@ -242,3 +242,52 @@ ul.qlist li { margin: 6px 0; }
 .review-row.bad .r-mark { color: var(--danger); }
 .r-user { flex: 1; }
 .r-right { color: var(--muted); }
+
+/* ---------------- 求 Star ---------------- */
+.star-card {
+  margin-top: 26px; display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  background: linear-gradient(135deg, #fff8e1, #fff3cd); border: 1px solid #ffe08a;
+  border-radius: var(--radius); padding: 20px 24px; flex-wrap: wrap;
+}
+.star-card h3 { margin: 0 0 4px; color: #8a5a00; }
+.star-card p { margin: 0; color: #7a6a3a; font-size: 14px; }
+.star-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px;
+  background: #f0b429; color: #3d2a00; font-weight: 700; border-radius: 999px;
+  text-decoration: none; box-shadow: 0 2px 8px rgba(240,180,41,.4); transition: transform .15s, box-shadow .15s;
+}
+.star-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(240,180,41,.55); color: #3d2a00; }
+
+/* ---------------- 勘误 ---------------- */
+.errata-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 9px 16px;
+  background: #fff; border: 1px solid var(--line); border-radius: 8px; color: var(--brand);
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.errata-btn:hover { border-color: var(--brand); background: var(--brand-light); }
+.errata-btn.small { margin: 0 10px 0 0; padding: 5px 10px; font-size: 12px; white-space: nowrap; }
+
+.errata-overlay {
+  position: fixed; inset: 0; z-index: 999; background: rgba(15, 23, 42, .45);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.errata-box {
+  position: relative; width: min(520px, 100%); max-height: 82vh; overflow: auto;
+  background: #fff; border-radius: 14px; padding: 26px 26px 22px; box-shadow: 0 18px 50px rgba(0,0,0,.25);
+}
+.errata-box h3 { margin: 0 0 10px; color: var(--brand-dark); }
+.errata-close {
+  position: absolute; top: 12px; right: 14px; width: 30px; height: 30px; border: none;
+  background: #f1f5f9; border-radius: 50%; font-size: 18px; line-height: 1; color: var(--muted); cursor: pointer;
+}
+.errata-close:hover { background: #e2e8f0; color: var(--text); }
+.errata-note { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.errata-list { margin: 0 0 16px; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+.errata-list li { font-size: 14px; }
+.errata-list b { color: var(--danger); }
+.errata-empty { color: var(--muted); font-size: 14px; background: #f8fafc; border: 1px dashed var(--line); border-radius: 8px; padding: 16px; text-align: center; margin: 0 0 16px; }
+.report-link {
+  display: inline-block; padding: 10px 18px; background: var(--brand); color: #fff;
+  border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600;
+}
+.report-link:hover { background: var(--brand-dark); color: #fff; }

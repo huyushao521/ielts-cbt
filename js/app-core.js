@@ -7,6 +7,7 @@ window.App = (function () {
   const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
   const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   const fmt = (sec) => { const m = Math.floor(sec / 60), s = sec % 60; return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0"); };
+  const REPO = "https://github.com/huyushao521/ielts-cbt";
 
   function show(viewId) {
     $$(".view").forEach((v) => v.classList.remove("active"));
@@ -76,6 +77,9 @@ window.App = (function () {
       '<div class="home-head"><h1>剑桥雅思机考练习系统</h1>' +
       '<p class="sub">IELTS Academic Computer-Based Practice · 请选择真题集</p></div>' +
       '<div class="book-grid"></div>' +
+      '<div class="star-card"><div><h3>⭐ 求一个 Star</h3>' +
+      '<p>如果这个练习系统对你有帮助，欢迎在 GitHub 点个 Star，支持持续更新与勘误。</p></div>' +
+      '<a class="star-btn" href="' + REPO + '" target="_blank" rel="noopener">🌟 Star on GitHub</a></div>' +
       '<div class="home-foot">听力 / 阅读可自动判分并估算雅思分数；听力音频已内置。</div>' +
       "</div></div>"
     );
@@ -121,10 +125,12 @@ window.App = (function () {
       '<p class="sub">' + D.meta.book + " · " + D.meta.module + " · 机考练习系统</p></div>" +
       '<div class="card-grid"></div>' +
       '<div class="home-foot">听力音频已内置；听力 / 阅读可自动判分并估算雅思分数。</div>' +
+      '<button class="errata-btn" id="section-errata-btn">📝 本题勘误 / 报错</button>' +
       "</div></div>"
     );
     $("#app").appendChild(view);
     view.querySelector(".back-home").addEventListener("click", () => App.selectBook(book.id));
+    view.querySelector("#section-errata-btn").addEventListener("click", () => App.openErrata(state.testId));
     const grid = view.querySelector(".card-grid");
     const defs = [
       { k: "listening", icon: "🎧", name: "Listening 听力", desc: "4 个部分 · 30 分钟 · 40 题" },
@@ -139,6 +145,33 @@ window.App = (function () {
     });
   }
 
+  /* 打开某套题的勘误弹窗（可复用：首页各科页面与答题页均调用） */
+  function openErrata(testId) {
+    const data = window.IELTS_DATA_MAP[testId] || {};
+    const book = findBook(state.bookId) || {};
+    const label = (book.short ? book.short + " · " : "") + (data.meta ? data.meta.test : testId);
+    const list = (window.IELTS_ERRATA && window.IELTS_ERRATA[testId]) || [];
+    const title = encodeURIComponent("[勘误] " + testId + " 题目/答案有误");
+    const body = encodeURIComponent("套题：" + testId + "\n模块/题号：\n问题描述：\n建议修正：");
+    const reportUrl = REPO + "/issues/new?title=" + title + "&body=" + body;
+    const itemsHtml = list.length
+      ? '<ul class="errata-list">' + list.map((e) => "<li><b>" + e.q + "</b>：" + e.note + "</li>").join("") + "</ul>"
+      : '<p class="errata-empty">本套题暂无勘误记录。</p>';
+    const ov = el(
+      '<div class="errata-overlay"><div class="errata-box">' +
+      '<button class="errata-close" title="关闭">×</button>' +
+      "<h3>📝 勘误 · " + label + "</h3>" +
+      '<p class="errata-note">' + (window.IELTS_ERRATA_NOTE || "") + "</p>" +
+      itemsHtml +
+      '<a class="report-link" href="' + reportUrl + '" target="_blank" rel="noopener">🐛 我要报错 / 提交勘误</a>' +
+      "</div></div>"
+    );
+    document.body.appendChild(ov);
+    const close = () => ov.remove();
+    ov.addEventListener("click", (e) => { if (e.target === ov) close(); });
+    ov.querySelector(".errata-close").addEventListener("click", close);
+  }
+
   function startSection(kind) {
     state.section = kind; state.answers = {}; state.submitted = false;
     $("#app").innerHTML = "";
@@ -148,5 +181,5 @@ window.App = (function () {
     else if (kind === "speaking") App.buildSpeaking();
   }
 
-  return { D: null, state, $, $$, el, norm, fmt, show, stopTimer, startTimer, renderHome, selectBook, selectTest, loadTest, startSection };
+  return { D: null, state, $, $$, el, norm, fmt, show, stopTimer, startTimer, renderHome, selectBook, selectTest, loadTest, startSection, openErrata };
 })();

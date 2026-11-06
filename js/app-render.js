@@ -9,13 +9,14 @@
       '<header class="exam-bar"><div class="exam-left">' +
       '<button class="back-btn" title="返回首页">‹ 返回</button>' +
       '<span class="exam-title">' + A.D.meta.book + " " + A.D.meta.test + " · " + cfg.name + "</span></div>" +
-      '<div class="exam-right"><span class="timer" id="timer">--:--</span></div></header>' +
+      '<div class="exam-right"><button class="errata-btn small" id="errata-btn" title="本题勘误/报错">📝 勘误</button><span class="timer" id="timer">--:--</span></div></header>' +
       '<div class="exam-body" id="exam-body"></div>' +
       '<nav class="nav-palette" id="nav-palette"></nav>' +
       '<div class="submit-bar"><button class="submit-btn" id="submit-btn">提交答卷</button></div></div>'
     );
     A.$("#app").appendChild(view);
     view.querySelector(".back-btn").addEventListener("click", A.renderHome);
+    view.querySelector("#errata-btn").addEventListener("click", () => A.openErrata(A.state.testId));
     view.querySelector("#submit-btn").addEventListener("click", () => {
       if (!A.state.submitted && confirm("确定要提交答卷吗？提交后将无法修改。")) A.doSubmit(cfg);
     });
