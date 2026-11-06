@@ -1,18 +1,21 @@
-# 剑桥雅思机考练习系统（剑 20 / 剑 21）
+# 剑桥雅思机考练习系统（剑 17–21）
 
-一个纯前端（HTML/CSS/JS，无依赖）的雅思机考模拟网页，模拟官方 Computer-Based IELTS 的界面与答题体验。
+一个纯前端（HTML/CSS/JS，零依赖）的雅思机考模拟网页，模拟官方 Computer-Based IELTS 的界面与答题体验。无需构建、无需后端，静态托管即可使用。
 
 ## 已收录内容
 
-| 书目 | 收录范围 | 状态 |
+| 书目（Academic） | 收录范围 | 状态 |
 | --- | --- | --- |
-| Cambridge IELTS 21（Academic） | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
-| Cambridge IELTS 20（Academic） | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
-| Cambridge IELTS 19 及更早 | — | ⏳ 预留位置，未收录 |
+| Cambridge IELTS 21 | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
+| Cambridge IELTS 20 | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
+| Cambridge IELTS 19 | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
+| Cambridge IELTS 18 | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
+| Cambridge IELTS 17 | Test 1–4（听力 / 阅读 / 写作 / 口语 + 音频） | ✅ 完整 |
+| Cambridge IELTS 16 / 15 | — | ⏳ 预留位置，未收录 |
 
 ## 功能
 
-- **Listening 听力**：内置音频播放器（可暂停/重播），4 个部分共 40 题，30 分钟计时，自动判分。
+- **Listening 听力**：内置音频播放器（可暂停 / 重播），4 个部分共 40 题，30 分钟计时，自动判分。
 - **Reading 阅读**：3 篇文章分栏阅读（左侧原文、右侧题目），40 题，60 分钟计时，自动判分。
 - **Writing 写作**：Task 1 + Task 2，实时字数统计，60 分钟计时（写作无法自动判分）。
 - **Speaking 口语**：Part 1–3 完整题目展示，支持自练自评与 AI 评分。
@@ -54,28 +57,31 @@ git push origin main
 
 ```
 ielts-cbt/
-├── index.html            # 入口（按序引入 books.js → 各数据文件 → 核心脚本）
+├── index.html              # 入口（按序引入 books.js → 各数据文件 → 核心脚本）
 ├── css/style.css
 ├── js/
-│   ├── books.js          # 书目注册表（新增书目在此登记）
-│   ├── c20-t{n}-*.js     # 剑 20 各 Test 的听力/阅读/写作数据
-│   ├── c21-t{n}-*.js     # 剑 21 各 Test 的听力/阅读/写作数据
-│   ├── speaking-ai.js    # 口语 AI：录音、讯飞 IAT 转写、讯飞 TTS、通义千问评分
-│   ├── app-core.js / app-render.js / app-sections.js
+│   ├── books.js            # 书目注册表（新增书目在此登记）
+│   ├── c{book}-t{test}-{section}.js   # 各书各 Test 的听力/阅读/写作数据
+│   │   例：c17-t4-reading.js = 剑 17 Test 4 阅读
+│   ├── errata.js           # 勘误 / 补全数据
+│   ├── speaking-ai.js      # 口语 AI：录音、讯飞 IAT 转写、讯飞 TTS、通义千问评分
+│   └── app-core.js / app-render.js / app-sections.js   # 核心逻辑与渲染
 └── audio/
-    ├── T1S1.mp3 … T4S4.mp3   # 剑 20 听力音频
-    └── c21/…                 # 剑 21 听力音频
+    ├── T1S1.mp3 … T4S4.mp3  # 剑 20 听力音频（放在根目录）
+    └── c17/ c18/ c19/ c21/  # 其余各书听力音频（每书 16 个 mp3）
 ```
 
 ## 音频文件约定
 
-听力音频命名规则为 `T{测试号}S{部分号}.mp3`，放在 `audio/` 根目录（剑 20）或对应子目录（剑 21 放在 `audio/c21/`）：
+听力音频命名规则为 `T{测试号}S{部分号}.mp3`。除剑 20 放在 `audio/` 根目录外，其余各书放在对应子目录：
 
 ```
-audio/T1S1.mp3   # Test 1, Part 1
-audio/T1S4.mp3   # Test 1, Part 4
-audio/c21/T1S1.mp3
+audio/T1S1.mp3      # 剑 20 · Test 1, Part 1
+audio/c17/T4S4.mp3  # 剑 17 · Test 4, Part 4
+audio/c21/T1S1.mp3  # 剑 21 · Test 1, Part 1
 ```
+
+数据文件内通过 `audio/c17/T4S1.mp3` 这类相对路径引用，新增音频时保持一致即可。
 
 ## 口语 AI 密钥配置
 
@@ -88,7 +94,7 @@ audio/c21/T1S1.mp3
 
 ## 内容与版权说明
 
-- 题目内容来自《Cambridge IELTS 20 / 21（Academic）》，由扫描版 PDF 经 OCR 整理，**个别单词 / 标点可能存在识别误差**，正式刷题前建议对照纸质书校对。
+- 题目内容来自《Cambridge IELTS 17–21（Academic）》，由扫描版 PDF 经 OCR 整理，**个别单词 / 标点可能存在识别误差**，正式刷题前建议对照纸质书校对。
 - 阅读部分个别缺失选项已用中性干扰项补全（不影响判分）。
 - 本内容受版权保护，**仅供个人学习练习使用**；请勿公开发布完整题目，公开发布可能面临侵权 / 下架风险。
 
